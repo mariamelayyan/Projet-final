@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: crystals
   m_EditorClassIdentifier: ColliderEventSystem::ColliderEventSystem.IntVariable
   m_Id: 90ec30c1468e4c7ba78c8378ce975261
-  Persistent: 1
+  Persistent: 0
   m_InitialValue: 0
