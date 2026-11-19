@@ -305,8 +305,11 @@ namespace StarterAssets
                     _verticalVelocity = -2f;
                 }
 
+                // While movement is locked (for example during an attack), ignore jump presses
+                if (!canMove) _input.jump = false;
+
                 // Jump
-                if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+                if (_input.jump && _jumpTimeoutDelta <= 0.0f && canMove)
                 {
                     // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);

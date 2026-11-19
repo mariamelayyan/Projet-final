@@ -22,6 +22,12 @@ public class Guard : MonoBehaviour
     public string walkParameter = "walking";
     public string runParameter = "running";
 
+    [Header("Fall")]
+    public string fallTag = "trapdoor";
+    public string fallTrigger = "fall";
+    public bool turnOffLightWhenDown = true;
+    public float slideSpeed = 3f;   // vitesse pour se centrer sur la trappe
+
     public Transform pathHolder;
 
     float viewAngle;
@@ -32,6 +38,7 @@ public class Guard : MonoBehaviour
     float lastSeenTime;
     int walkId;
     int runId;
+    bool fallen;
 
     void Start() {
         player = GameObject.FindGameObjectWithTag("Player").transform;
@@ -53,7 +60,6 @@ public class Guard : MonoBehaviour
     }
 
     void Update() {
-
         if (fallen) return;
 
         bool seen = CanSeePlayer();
@@ -181,31 +187,31 @@ public class Guard : MonoBehaviour
     }
 
     // ---------- Fall ----------
-    [Header("Fall")]
-    public string fallTag = "trapdoor";        // objects with this tag knock him down
-    public string fallTrigger = "fall";      // Trigger parameter in the Animator Controller
-    public bool turnOffLightWhenDown = true;
 
-        bool fallen;
+    void OnTriggerEnter(Collider other) {
+        if (!fallen && other.CompareTag(fallTag)) Fall(other);
+    }
 
-        void OnCollisionEnter(Collision collision) {
-            if (!fallen && collision.collider.CompareTag(fallTag)) Fall();
+    void Fall(Collider door) {
+        fallen = true;
+        chasing = false;
+        StopAllCoroutines();
+        SetWalking(false);
+        SetRunning(false);
+        if (animator != null) animator.SetTrigger(fallTrigger);
+        if (turnOffLightWhenDown) spotLight.enabled = false;
+
+        StartCoroutine(SlideToCenter(door.bounds.center));
+    }
+
+    IEnumerator SlideToCenter(Vector3 center) {
+        while (FlatDistance(center) > 0.01f) {
+            Vector3 p = transform.position;
+            Vector3 flat = new Vector3(center.x, p.y, center.z);
+            transform.position = Vector3.MoveTowards(p, flat, slideSpeed * Time.deltaTime);
+            yield return null;
         }
-
-        void OnTriggerEnter(Collider other) {
-            if (!fallen && other.CompareTag(fallTag)) Fall();
-        }
-
-        void Fall() {
-            fallen = true;
-            chasing = false;
-            StopAllCoroutines();
-            SetWalking(false);
-            SetRunning(false);
-            if (animator != null) animator.SetTrigger(fallTrigger);
-            if (turnOffLightWhenDown) spotLight.enabled = false;
-        }
-    
+    }
 
     void OnDrawGizmos() {
         Vector3 startPosition = pathHolder.GetChild(0).position;
